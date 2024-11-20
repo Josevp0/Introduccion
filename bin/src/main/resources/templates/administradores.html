@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administradores</title>
+</head>
+<body>
+<h1>Gestión de Administradores</h1>
+
+<button onclick="window.location.href='/';">Volver al Inicio</button>
+
+<h2>Crear Administrador</h2>
+<form id="crearAdministradorForm">
+    <label for="nombre">Nombre:</label>
+    <input type="text" id="nombre" name="nombre" required><br>
+
+    <label for="apellido">Apellido:</label>
+    <input type="text" id="apellido" name="apellido" required><br>
+
+    <label for="correo">Correo:</label>
+    <input type="email" id="correo" name="correo" required><br>
+
+    <label for="contrasena">Contraseña:</label>
+    <input type="password" id="contrasena" name="contrasena" required><br>
+
+    <button type="submit">Crear</button>
+</form>
+
+<h2>Lista de Administradores</h2>
+<table border="1">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Apellido</th>
+        <th>Correo</th>
+        <th>Acciones</th>
+    </tr>
+    </thead>
+    <tbody id="administradoresTableBody">
+    <!-- Datos cargados dinámicamente -->
+    </tbody>
+</table>
+
+<!-- Modal para actualizar administrador -->
+<div id="modalActualizar" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border:1px solid #ccc;">
+    <h3>Actualizar Administrador</h3>
+    <form id="actualizarAdministradorForm">
+        <input type="hidden" id="updateId">
+        <label for="updateNombre">Nombre:</label>
+        <input type="text" id="updateNombre" name="nombre" required><br>
+
+        <label for="updateApellido">Apellido:</label>
+        <input type="text" id="updateApellido" name="apellido" required><br>
+
+        <label for="updateCorreo">Correo:</label>
+        <input type="email" id="updateCorreo" name="correo" required><br>
+
+        <label for="updateContrasena">Contraseña:</label>
+        <input type="password" id="updateContrasena" name="contrasena"><br>
+
+        <button type="submit">Guardar Cambios</button>
+        <button type="button" onclick="cerrarModal()">Cancelar</button>
+    </form>
+</div>
+
+<script>
+    async function cargarAdministradores() {
+        const response = await fetch('/administradores');
+        const administradores = await response.json();
+        const tbody = document.getElementById('administradoresTableBody');
+        tbody.innerHTML = '';
+        administradores.forEach(admin => {
+            const row = `<tr>
+                    <td>${admin.id}</td>
+                    <td>${admin.nombre}</td>
+                    <td>${admin.apellido}</td>
+                    <td>${admin.correo}</td>
+                    <td>
+                        <button onclick="eliminarAdministrador(${admin.id})">Eliminar</button>
+                        <button onclick="mostrarModal(${admin.id})">Actualizar</button>
+                    </td>
+                </tr>`;
+            tbody.innerHTML += row;
+        });
+    }
+
+    document.getElementById('crearAdministradorForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        await fetch('/administradores', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        cargarAdministradores();
+    });
+
+    async function eliminarAdministrador(id) {
+        await fetch(`/administradores/${id}`, { method: 'DELETE' });
+        cargarAdministradores();
+    }
+
+    function mostrarModal(id) {
+        fetch(`/administradores/${id}`)
+            .then(response => response.json())
+            .then(admin => {
+                document.getElementById('updateId').value = admin.id;
+                document.getElementById('updateNombre').value = admin.nombre;
+                document.getElementById('updateApellido').value = admin.apellido;
+                document.getElementById('updateCorreo').value = admin.correo;
+                document.getElementById('modalActualizar').style.display = 'block';
+            });
+    }
+
+    document.getElementById('actualizarAdministradorForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('updateId').value;
+        const data = {
+            nombre: document.getElementById('updateNombre').value,
+            apellido: document.getElementById('updateApellido').value,
+            correo: document.getElementById('updateCorreo').value,
+            contrasena: document.getElementById('updateContrasena').value
+        };
+        await fetch(`/administradores/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        cerrarModal();
+        cargarAdministradores();
+    });
+
+    function cerrarModal() {
+        document.getElementById('modalActualizar').style.display = 'none';
+    }
+
+    cargarAdministradores();
+</script>
+</body>
+</html>
+

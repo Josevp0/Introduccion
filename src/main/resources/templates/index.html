@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Administradores y Productos</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="css/img/logo.jpg" alt="Logo de la empresa" class="company-logo">
+            <h1>Bienvenido</h1>
+            <p class="subtitle">Sistema de Gestión de Productos</p>
+        </header>
+
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <i class="fas fa-users"></i>
+                <h3>Administradores</h3>
+                <p>Gestión de accesos</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-burger"></i>
+                <h3>Productos</h3>
+                <p>Control de menú</p>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-chart-line"></i>
+                <h3>Estadísticas</h3>
+                <p>Visualización de datos</p>
+            </div>
+        </div>
+
+        <nav>
+            <ul>
+                <li>
+                    <form action="/view/administradores" method="get">
+                        <button type="submit" class="nav-button">
+                            <i class="fas fa-user-shield"></i>
+                            Página de Administradores
+                        </button>
+                    </form>
+                </li>
+                <li>
+                    <button onclick="mostrarModal()" class="nav-button">
+                        <i class="fas fa-plus-circle"></i>
+                        Página de Productos
+                    </button>
+                </li>
+                <li>
+                    <form action="/view/menu" method="get">
+                        <button type="submit" class="nav-button">
+                            <i class="fas fa-book-open"></i>
+                            Ver Menú Productos
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Modal de Autenticación -->
+    <div id="authModal">
+        <h2>Autenticación de Administrador</h2>
+        <form id="authForm">
+            <div class="form-group">
+                <label for="correo">
+                    <i class="fas fa-envelope"></i>
+                    Correo:
+                </label>
+                <input type="email" id="correo" name="correo" required>
+            </div>
+            <div class="form-group">
+                <label for="contrasena">
+                    <i class="fas fa-lock"></i>
+                    Contraseña:
+                </label>
+                <input type="password" id="contrasena" name="contrasena" required>
+            </div>
+            <div class="form-actions">
+                <button type="submit">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Ingresar
+                </button>
+                <button type="button" onclick="cerrarModal()">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+    <div id="overlay" onclick="cerrarModal()"></div>
+
+    <script>
+        function mostrarModal() {
+            document.getElementById('authModal').classList.add('active');
+            document.getElementById('overlay').classList.add('active');
+        }
+
+        function cerrarModal() {
+            document.getElementById('authModal').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
+        }
+
+        // Enviar los datos al servidor para autenticación
+        document.getElementById('authForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const correo = document.getElementById('correo').value;
+            const contrasena = document.getElementById('contrasena').value;
+
+            try {
+                const response = await fetch('/administradores/auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ correo, contrasena }),
+                });
+
+                if (response.ok) {
+                    // Redirigir a la página de productos si la autenticación es exitosa
+                    window.location.href = '/view/productos';
+                } else {
+                    alert('Autenticación fallida. Verifique sus credenciales.');
+                }
+            } catch (error) {
+                console.error('Error al autenticar:', error);
+                alert('Ocurrió un error. Intente nuevamente más tarde.');
+            }
+        });
+    </script>
+</body>
+</html>

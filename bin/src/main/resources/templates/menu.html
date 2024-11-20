@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos Subidos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .productos-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .producto-card {
+            border: 2px solid #f4a261;
+            border-radius: 12px;
+            padding: 20px;
+            width: 280px;
+            text-align: center;
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+            background-color: #fff5e6;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .producto-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .producto-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .producto-card h2 {
+            font-size: 1.8rem;
+            color: #e76f51;
+            margin: 10px 0;
+        }
+
+        .producto-card p {
+            font-size: 1.1rem;
+            color: #2a9d8f;
+        }
+
+        .producto-card button {
+            background-color: #e63946;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .producto-card button:hover {
+            background-color: #b5173a;
+        }
+    </style>
+</head>
+<body>
+<h1>Productos Subidos</h1>
+<div class="productos-container" id="productosContainer">
+    <!-- Productos cargados dinámicamente -->
+</div>
+
+<script>
+    // Función para cargar productos y mostrarlos en el contenedor
+    async function cargarProductos() {
+        const response = await fetch('/productos'); // Cambiar URL si es necesario
+        const productos = await response.json();
+        const container = document.getElementById('productosContainer');
+        container.innerHTML = '';
+
+        productos.forEach(prod => {
+            let imgSrc = 'https://via.placeholder.com/250x150?text=Sin+Imagen';
+            if (prod.imagen) {
+                imgSrc = `data:image/jpeg;base64,${prod.imagen}`;
+            }
+
+            const productoHTML = `
+                <div class="producto-card" id="producto-${prod.id}">
+                    <img src="${imgSrc}" alt="Imagen de ${prod.nombreProducto}">
+                    <h2>${prod.nombreProducto}</h2>
+                    <p>${prod.descripcion}</p>
+                </div>
+            `;
+            container.innerHTML += productoHTML;
+        });
+    }
+    // Cargar productos al cargar la página
+    cargarProductos();
+</script>
+</body>
+</html>
+

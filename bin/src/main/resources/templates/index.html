@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Administradores y Productos</title>
+  <style>
+    button {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #authModal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+    #authModal.active {
+      display: block;
+    }
+    #overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+    }
+    #overlay.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<h1>Bienvenido</h1>
+<nav>
+  <ul>
+    <li>
+      <form action="/view/administradores" method="get">
+        <button type="submit">Página de Administradores</button>
+      </form>
+    </li>
+    <li>
+      <button onclick="mostrarModal()">Página de Productos</button>
+    </li>
+    <li>
+      <form action="/view/menu" method="get">
+        <button type="submit">Ver Menú Productos</button>
+      </form>
+    </li>
+  </ul>
+</nav>
+
+<!-- Modal de Autenticación -->
+<div id="authModal">
+  <h2>Autenticación de Administrador</h2>
+  <form id="authForm">
+    <label for="correo">Correo:</label>
+    <input type="email" id="correo" name="correo" required><br><br>
+    <label for="contrasena">Contraseña:</label>
+    <input type="password" id="contrasena" name="contrasena" required><br><br>
+    <button type="submit">Ingresar</button>
+    <button type="button" onclick="cerrarModal()">Cancelar</button>
+  </form>
+</div>
+<div id="overlay" onclick="cerrarModal()"></div>
+
+<script>
+  function mostrarModal() {
+    document.getElementById('authModal').classList.add('active');
+    document.getElementById('overlay').classList.add('active');
+  }
+
+  function cerrarModal() {
+    document.getElementById('authModal').classList.remove('active');
+    document.getElementById('overlay').classList.remove('active');
+  }
+
+  // Enviar los datos al servidor para autenticación
+  document.getElementById('authForm').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    const correo = document.getElementById('correo').value;
+    const contrasena = document.getElementById('contrasena').value;
+
+    try {
+      const response = await fetch('/administradores/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ correo, contrasena }),
+      });
+
+      if (response.ok) {
+        // Redirigir a la página de productos si la autenticación es exitosa
+        window.location.href = '/view/productos';
+      } else {
+        alert('Autenticación fallida. Verifique sus credenciales.');
+      }
+    } catch (error) {
+      console.error('Error al autenticar:', error);
+      alert('Ocurrió un error. Intente nuevamente más tarde.');
+    }
+  });
+</script>
+</body>
+</html>
+
+
