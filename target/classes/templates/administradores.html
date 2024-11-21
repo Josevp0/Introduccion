@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Administradores</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+			<img th:src="@{/css/img/logo.jpg}" alt="Logo de la empresa" class="company-logo">
+            <h1>Gestión de Administradores</h1>
+            <p class="subtitle">Panel de Control</p>
+        </header>
+
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <h2><i class="fas fa-user-plus"></i> Crear Administrador</h2>
+                <form id="crearAdministradorForm">
+                    <div class="form-group">
+                        <label for="nombre">Nombre:</label>
+                        <input type="text" id="nombre" name="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="apellido">Apellido:</label>
+                        <input type="text" id="apellido" name="apellido" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="correo">Correo:</label>
+                        <input type="email" id="correo" name="correo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contrasena">Contraseña:</label>
+                        <input type="password" id="contrasena" name="contrasena" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="nav-button">
+                            <i class="fas fa-user-plus"></i> Crear
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabla de Administradores -->
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <h2><i class="fas fa-list"></i> Lista de Administradores</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Apellido</th>
+                            <th>Correo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="administradoresTableBody">
+                        <!-- Datos cargados dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button class="nav-button" onclick="window.location.href='/';">
+                <i class="fas fa-arrow-left"></i> Volver al Inicio
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal para Actualizar Administrador -->
+    <div id="overlay"></div>
+    <div id="modalActualizar" class="modal">
+        <div class="modal-content">
+            <h3>Actualizar Administrador</h3>
+            <form id="actualizarAdministradorForm">
+                <input type="hidden" id="updateId">
+                <div class="form-group">
+                    <label for="updateNombre">Nombre:</label>
+                    <input type="text" id="updateNombre" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="updateApellido">Apellido:</label>
+                    <input type="text" id="updateApellido" name="apellido" required>
+                </div>
+                <div class="form-group">
+                    <label for="updateCorreo">Correo:</label>
+                    <input type="email" id="updateCorreo" name="correo" required>
+                </div>
+                <div class="form-group">
+                    <label for="updateContrasena">Contraseña:</label>
+                    <input type="password" id="updateContrasena" name="contrasena">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="nav-button">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                    <button type="button" class="nav-button" onclick="cerrarModal()">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script>
+        // Funciones de interacción
+        async function cargarAdministradores() {
+            const response = await fetch('/administradores');
+            const administradores = await response.json();
+            const tbody = document.getElementById('administradoresTableBody');
+            tbody.innerHTML = '';
+            administradores.forEach(admin => {
+                const row = `<tr>
+                        <td>${admin.id}</td>
+                        <td>${admin.nombre}</td>
+                        <td>${admin.apellido}</td>
+                        <td>${admin.correo}</td>
+                        <td>
+                            <button onclick="eliminarAdministrador(${admin.id})">Eliminar</button>
+                            <button onclick="mostrarModal(${admin.id})">Actualizar</button>
+                        </td>
+                    </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+
+        document.getElementById('crearAdministradorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            await fetch('/administradores', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            cargarAdministradores();
+        });
+
+        async function eliminarAdministrador(id) {
+            await fetch(`/administradores/${id}`, { method: 'DELETE' });
+            cargarAdministradores();
+        }
+
+        function mostrarModal(id) {
+            fetch(`/administradores/${id}`)
+                .then(response => response.json())
+                .then(admin => {
+                    document.getElementById('updateId').value = admin.id;
+                    document.getElementById('updateNombre').value = admin.nombre;
+                    document.getElementById('updateApellido').value = admin.apellido;
+                    document.getElementById('updateCorreo').value = admin.correo;
+                    document.getElementById('modalActualizar').style.display = 'block';
+                });
+        }
+
+        document.getElementById('actualizarAdministradorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('updateId').value;
+            const data = {
+                nombre: document.getElementById('updateNombre').value,
+                apellido: document.getElementById('updateApellido').value,
+                correo: document.getElementById('updateCorreo').value,
+                contrasena: document.getElementById('updateContrasena').value
+            };
+            await fetch(`/administradores/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            cerrarModal();
+            cargarAdministradores();
+        });
+
+        function cerrarModal() {
+            document.getElementById('modalActualizar').style.display = 'none';
+        }
+
+        cargarAdministradores();
+    </script>
+</body>
+</html>

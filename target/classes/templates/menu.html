@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+	<head>
+	    <meta charset="UTF-8">
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	    <meta name="description" content="Menú de productos disponibles">
+	    <title>Menú de Productos</title>
+	    <link rel="stylesheet" th:href="@{/css/menu.css}">
+	    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+	</head>
+	<body>
+	    <header class="header">
+	        <div class="header-container">
+	            <img th:src="@{/css/img/logo.jpg}" alt="Logo de la empresa" class="company-logo">
+	            <h1 class="main-title">Nuestro Menú</h1>
+	            <p class="header-description">Descubre nuestra selección de productos especialmente preparados para ti</p>
+	        </div>
+	    </header>
+
+	    <main class="main-content">
+	        <section class="search-section">
+	            <div class="search-container">
+	                <input type="text" id="searchInput" class="search-input" placeholder="Buscar productos...">
+	                <button class="search-button">
+	                    <i class="fas fa-search"></i>
+	                </button>
+	            </div>
+	        </section>
+
+	        <section class="productos-section">
+	            <div class="productos-grid" id="productosContainer">
+	            </div>
+	        </section>
+	    </main>
+
+	    <footer class="footer">
+	        <div class="footer-content">
+	            <div class="footer-info">
+	                <h3>Información de Contacto</h3>
+	                <p><i class="fas fa-phone"></i> +57 3227700413</p>
+	                <p><i class="fas fa-envelope"></i> nidiparada@gmail.com</p>
+	            </div>
+	            <div class="footer-social">
+	                <h3>Síguenos</h3>
+	                <div class="social-links">
+	                    <a href="https://www.instagram.com/anto._burger1?utm_source=ig_web_button_share_sheet&igshid=ZDNlZDc0MzIxNw==" 
+	                       target="_blank" class="social-link" title="Instagram">
+	                        <i class="fab fa-instagram"></i>
+	                    </a>
+	                    <a href="https://www.tiktok.com/@antoburger1?is_from_webapp=1&sender_device=pc" 
+	                       target="_blank" class="social-link" title="TikTok">
+	                        <i class="fab fa-tiktok"></i>
+	                    </a>
+	                </div>
+	            </div>
+	        </div>
+	        <div class="footer-bottom">
+	            <p>&copy; 2024 AntoBurguer. Todos los derechos reservados.</p>
+	        </div>
+	    </footer>
+
+	    <script>
+	        async function cargarProductos() {
+	            try {
+	                const response = await fetch('/productos');
+	                const productos = await response.json();
+	                const container = document.getElementById('productosContainer');
+	                container.innerHTML = '';
+
+	                productos.forEach(prod => {
+	                    let imgSrc = 'https://via.placeholder.com/400x300?text=Sin+Imagen';
+	                    if (prod.imagen) {
+	                        imgSrc = `data:image/jpeg;base64,${prod.imagen}`;
+	                    }
+
+	                    const productoHTML = `
+	                        <article class="producto-card" id="producto-${prod.id}">
+	                            <div class="producto-imagen">
+	                                <img src="${imgSrc}" alt="Imagen de ${prod.nombreProducto}">
+	                            </div>
+	                            <div class="producto-info">
+	                                <h2 class="producto-titulo">${prod.nombreProducto}</h2>
+	                                <p class="producto-descripcion">${prod.descripcion}</p>
+									<button class="btn-detalles">
+									    $${Math.round(prod.precio)}
+									</button>
+	                            </div>
+	                        </article>
+	                    `;
+	                    container.insertAdjacentHTML('beforeend', productoHTML);
+	                });
+
+	                const searchInput = document.getElementById('searchInput');
+	                searchInput.addEventListener('input', function(e) {
+	                    const searchTerm = e.target.value.toLowerCase();
+	                    const productoCards = document.querySelectorAll('.producto-card');
+	                    
+	                    productoCards.forEach(card => {
+	                        const titulo = card.querySelector('.producto-titulo').textContent.toLowerCase();
+	                        const descripcion = card.querySelector('.producto-descripcion').textContent.toLowerCase();
+	                        
+	                        if (titulo.includes(searchTerm) || descripcion.includes(searchTerm)) {
+	                            card.style.display = 'block';
+	                        } else {
+	                            card.style.display = 'none';
+	                        }
+	                    });
+	                });
+
+	            } catch (error) {
+	                console.error('Error al cargar productos:', error);
+	                const container = document.getElementById('productosContainer');
+	                container.innerHTML = '<p class="error-message">Error al cargar los productos. Por favor, intente más tarde.</p>';
+	            }
+	        }
+
+	        document.addEventListener('DOMContentLoaded', cargarProductos);
+	    </script>
+	</body>
+	</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema de gestión de productos">
+    <title>Gestión de Productos</title>
+    <link rel="stylesheet" th:href="@{/css/producto.css}">
+</head>
+<body>
+<header class="header">
+    <div class="header-container">
+        <img th:src="@{/css/img/logo.jpg}" alt="Logo de la empresa" class="company-logo">
+        <h1 class="main-title">Gestión de Productos</h1>
+    </div>
+    <nav class="navigation">
+        <button class="btn btn-primary" onclick="window.location.href='/';">Volver al Inicio</button>
+    </nav>
+</header>
+
+<main class="main-content">
+    <section class="create-product-section">
+        <h2 class="section-title">Crear Producto</h2>
+        <form id="crearProductoForm" class="product-form" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="imagen" class="form-label">Imagen:</label>
+                <input type="file" id="imagen" name="imagen" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label for="nombreProducto" class="form-label">Nombre del Producto:</label>
+                <input type="text" id="nombreProducto" name="nombreProducto" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label for="descripcion" class="form-label">Descripción:</label>
+                <textarea id="descripcion" name="descripcion" class="form-textarea" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="precio" class="form-label">Precio:</label>
+                <input type="number" id="precio" name="precio" class="form-input" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label for="administradorId" class="form-label">Administrador ID:</label>
+                <input type="number" id="administradorId" name="administradorId" class="form-input" required>
+            </div>
+
+            <button type="submit" class="btn btn-success">Crear Producto</button>
+        </form>
+    </section>
+
+    <section class="products-section">
+        <h2 class="section-title">Lista de Productos</h2>
+        <div class="productos-container" id="productosContainer"></div>
+    </section>
+</main>
+
+<footer class="footer">
+    <p>&copy; 2024 Gestión de Productos. Todos los derechos reservados.</p>
+</footer>
+
+<script>
+    // Función para cargar productos
+    async function cargarProductos() {
+        try {
+            const response = await fetch('/productos');
+            const productos = await response.json();
+            const container = document.getElementById('productosContainer');
+            container.innerHTML = '';
+
+            productos.forEach(producto => {
+                const imagenSrc = producto.imagen
+                    ? `data:image/jpeg;base64,${producto.imagen}`
+                    : 'https://via.placeholder.com/300';
+
+                const productoHTML = `
+                        <div class="producto-card" id="producto-${producto.id}">
+                            <div class="producto-imagen">
+                                <img src="${imagenSrc}" alt="${producto.nombreProducto}">
+                            </div>
+                            <div class="producto-info">
+                                <h3 class="producto-titulo">${producto.nombreProducto}</h3>
+                                <p class="producto-descripcion">${producto.descripcion}</p>
+                                <p class="producto-precio">Precio: $${producto.precio}</p>
+                                <button onclick="eliminarProducto(${producto.id})" class="btn btn-danger">Eliminar</button>
+                            </div>
+                        </div>
+                    `;
+                container.insertAdjacentHTML('beforeend', productoHTML);
+            });
+        } catch (error) {
+            console.error('Error al cargar productos:', error);
+            alert('Error al cargar los productos');
+        }
+    }
+
+    // Manejar envío de formulario
+    document.getElementById('crearProductoForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+
+        try {
+            const response = await fetch('/productos', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                alert('Producto creado exitosamente');
+                this.reset();
+                await cargarProductos();
+            } else {
+                throw new Error('Error en la respuesta del servidor');
+            }
+        } catch (error) {
+            console.error('Error al crear producto:', error);
+            alert('Error al crear el producto');
+        }
+    });
+
+    // Función para eliminar producto
+    async function eliminarProducto(id) {
+        if (confirm('¿Está seguro de que desea eliminar este producto?')) {
+            try {
+                const response = await fetch(`/productos/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('Producto eliminado exitosamente');
+                    await cargarProductos();
+                } else {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+            } catch (error) {
+                console.error('Error al eliminar producto:', error);
+                alert('Error al eliminar el producto');
+            }
+        }
+    }
+
+    // Cargar productos al iniciar
+    document.addEventListener('DOMContentLoaded', cargarProductos);
+</script>
+</body>
+</html>
